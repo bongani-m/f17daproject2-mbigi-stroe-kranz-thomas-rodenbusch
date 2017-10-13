@@ -1,5 +1,5 @@
 ---
-title: "World Datee"
+title: "World Date"
 author: "Bongani Mbigi, Daniel Stroe, Cortney Thomas, Jacob, Kurt Kranz"
 output:
   html_notebook:
@@ -13,6 +13,12 @@ runtime: shiny
 ```{r setup, include=FALSE}
 library(tidyverse)
 require(data.world)
+library(class)
+require(data.world)
+require(ggplot2)
+require(MASS)
+
+data.world::set_config(cfg_env("DW_API"))
 knitr::opts_chunk$set(echo = TRUE)
 ```
   
@@ -24,106 +30,61 @@ sessionInfo()
 
 ## **Github Link** 
 
+[Bongani's Github](https://github.com/bongani-m/f17daproject2-mbigi-stroe-kranz-thomas-rodenbusch)
 
 ## **Connecting to data.world** 
 ```{r}
-data.world::set_config(cfg_env("DW_API"))
-project <- "https://data.world/cannata/f-17-eda-project-1"
-df <- data.world::query(data.world::qry_sql("SELECT * FROM diamonds limit 1000"), dataset = project)
+project <- "https://data.world/cct685/bank-marketing"
+df <- data.world::query(
+  data.world::qry_sql("SELECT * FROM banking_data"),
+  dataset = project)
 ```
 
-```{r}
-project1 <- "https://data.world/kurtakranz/f-17-eda-project-1"
-world_data <- data.world::query(
-  data.world::qry_sql("SELECT * FROM world_data"),
-  dataset = project1)
-```
-
-```{r}
-summary(world_data)
-attach(world_data)
-sdf = dplyr::select(world_data, democraticrating, gdppc, literacy, infantymortality, argiculture, population, netmigration, unemployment, marriageage, alcoholconsumption) %>% filter(literacy != 0) %>% filter(democraticrating <= 10) %>% filter(marriageage != 0)
-pairs(sdf)
-
-plot(argiculture~log(gdppc), sdf)
-plot5 = lm(argiculture~log(gdppc),data=sdf)
-summary(plot5) #R^2 .6994
-abline(plot5,col="blue")
-```
-
-## **Introduction** 
-This R Markdown document is made interactive using Shiny. Unlike the more traditional workflow of creating static reports, you can now create documents that allow your readers to change the assumptions underlying your analysis and see the results immediately. 
+## **K Nearest Neighbors** 
+This is hte K nearest Neighbors
 
 To learn more, see [Interactive Documents](http://rmarkdown.rstudio.com/authoring_shiny.html).
 
-## Just a plot
 ```{r}
-library(tidyverse)
-renderPlot({ggplot(sdf) +
-  geom_point(mapping = aes(x=log(gdppc), y=argiculture))
-})
+Xy=cbind(df$balance,df$duration)
+bank.knntrain=df$month != "jun"
+knn.pred=knn(Xy[bank.knntrain,],Xy[!bank.knntrain,],df$y[bank.knntrain],k=1)
+table(knn.pred,df$y[!bank.knntrain])
+mean(knn.pred==df$y[!bank.knntrain])
+
 ```
 
-## Inputs and Outputs
 
-You can embed Shiny inputs and outputs in your document. Outputs are automatically updated whenever inputs change.  This demonstrates how a standard R plot can be made interactive by wrapping it in the Shiny `renderPlot` function. The `selectInput` and `sliderInput` functions create the input widgets used to drive the plot.
-
-```{r eruptions}
-inputPanel(
-  selectInput("n_breaks", label = "Number of bins:",
-              choices = c(10, 20, 35, 50), selected = 20),
-  
-  sliderInput("bw_adjust", label = "Bandwidth adjustment:",
-              min = 0.2, max = 2, value = 1, step = 0.2)
-)
+## linear discriminant analysis
+```{r}
+bank.ldasubset <- sample(1:150, 75)
+lda.fit=lda(y~balance+duration,data=df, subset= bank.ldasubset)
+lda.fit
 
 renderPlot({
-  hist(faithful$eruptions, probability = TRUE, breaks = as.numeric(input$n_breaks),
-       xlab = "Duration (minutes)", main = "Geyser eruption duration")
-  
-  dens <- density(faithful$eruptions, adjust = input$bw_adjust)
-  lines(dens, col = "blue")
+  plot(lda.fit)
 })
-```
-
-## Embedded Application
-
-It's also possible to embed an entire Shiny application within an R Markdown document using the `shinyAppDir` function. This example embeds a Shiny application located in another directory:
-
-```{r tabsets}
-shinyAppDir(
-  system.file("examples/06_tabsets", package = "shiny"),
-  options = list(
-    width = "100%", height = 900
-  )
-)
-```
-
-Note the use of the `height` parameter to determine how much vertical space the embedded application should occupy.
-
-You can also use the `shinyApp` function to define an application inline rather then in an external directory.
-
-In all of R code chunks above the `echo = FALSE` attribute is used. This is to prevent the R code within the chunk from rendering in the document alongside the Shiny components.
-
-## Inputs and Outputs 2
-
-```{r eruptions2}
-inputPanel(
-  selectInput("n_breaks2", label = "Number of bins:",
-              choices = c(10, 20, 35, 50), selected = 20),
-  
-  sliderInput("bw_adjust2", label = "Bandwidth adjustment:",
-              min = 0.2, max = 2, value = 1, step = 0.2)
-)
-
-renderPlot({
-  hist(faithful$eruptions, probability = TRUE, breaks = as.numeric(input$n_breaks2),
-       xlab = "Duration (minutes)", main = "Geyser eruption duration")
-  
-  dens <- density(faithful$eruptions, adjust = input$bw_adjust2)
-  lines(dens, col = "blue")
-})
+bank.ldatrain=subset(df,df$month=="jun")
+bank.ldapredict = predict(lda.fit, df[-bank.ldasubset, ])
+data.frame(bank.ldapredict)[1:5,]
+dflda = data.frame(bank.ldapredict)
+lda.class = predict(lda.fit, bank.ldatrain)
+table(lda.class$class,bank.ldatrain$y)
+mean(lda.class$class==bank.ldatrain$y)
 ```
 
 
-
+## quadratic discriminant analysis
+```{r}
+bank.qdasubset=df$month != "jun"
+qda.fit = qda(y~balance+duration, data = df, subset=bank.qdasubset)
+qda.fit # Notice - no coeficients.
+bank.qdatrain = subset(df, month == "jun")
+bank.qdapredict = predict(qda.fit, df[-bank.qdasubset, ])
+data.frame(bank.qdapredict)[1:5,]
+dfqda = data.frame(bank.qdapredict)
+data.frame(bank.qdatrain)[1:5,]
+qda.class = predict(qda.fit, bank.qdatrain)
+table(qda.class$class,bank.qdatrain$y)
+mean(qda.class$class==bank.qdatrain$y)
+```
