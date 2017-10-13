@@ -1,6 +1,6 @@
 ---
-title: "Dr. Cannata's Interactive Document Example"
-author: "Dr. Cannata"
+title: "World Datee"
+author: "Bongani Mbigi, Daniel Stroe, Cortney Thomas, Jacob, Kurt Kranz"
 output:
   html_notebook:
     code_folding: hide
@@ -23,7 +23,7 @@ sessionInfo()
 ```
 
 ## **Github Link** 
-TBD
+
 
 ## **Connecting to data.world** 
 ```{r}
