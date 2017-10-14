@@ -14,7 +14,7 @@ runtime: shiny
 library(tidyverse)
 require(data.world)
 library(class)
-require(data.world)
+
 require(ggplot2)
 require(MASS)
 
@@ -62,9 +62,6 @@ bank.knntrain=df$month != "jun"
 knn.pred=knn(Xy[bank.knntrain,],Xy[!bank.knntrain,],df$y[bank.knntrain],k=1)
 table(knn.pred,df$y[!bank.knntrain])
 mean(knn.pred==df$y[!bank.knntrain])
-renderPlot({
-  ggplot(subset(df, month = "jun"),aes(balance, duration, color=y==knn.pred)) + geom_point()
-  })
 ```
 
 
