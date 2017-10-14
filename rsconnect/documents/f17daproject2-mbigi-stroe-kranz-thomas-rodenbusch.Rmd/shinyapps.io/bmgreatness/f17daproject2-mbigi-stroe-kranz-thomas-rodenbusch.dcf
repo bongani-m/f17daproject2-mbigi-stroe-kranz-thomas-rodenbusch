@@ -5,8 +5,8 @@ account: bmgreatness
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 224748
-bundleId: 1025226
+bundleId: 1026203
 url: https://bmgreatness.shinyapps.io/f17daproject2-mbigi-stroe-kranz-thomas-rodenbusch/
-when: 1507905296.04192
+when: 1507946851.62818
 asMultiple: FALSE
 asStatic: FALSE

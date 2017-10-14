@@ -50,6 +50,12 @@ Here we use K Nearest Neighbors to predict the likely hood of whether they subsc
 
 Interesting insights that was seen was that  accurracy of the model was 85.12241%, which is very accurrate however when viewing a cross table we see that the model has a tendency to report false neggatives (44.1860%) far more than it does false positives(8.314088%),
 
+
+| Prediction    | False         | True  |
+| ------------- |:-------------:| -----:|
+| False         | 433           | 36    |
+| True          | 43            |   19  |
+
 ```{r}
 Xy=cbind(df$balance,df$duration)
 bank.knntrain=df$month != "jun"
@@ -64,16 +70,21 @@ renderPlot({
 
 ## Linear Discriminant Analysis
 
-Using Linear Discriminant Analysis on the same parameteres (duration and current balance) we were able to bost the accurracy to over 90%. This suggest there is a linear releation between whether or not they decide vs duration and balance.
+Using Linear Discriminant Analysis on the same parameteres (duration and current balance) we were able to bost the accurracy to over 89.83051%. This suggest there is a linear releation between whether or not they decide vs duration and balance.
+
+However the trend of false negatives continues.
+
+| Prediction    | False         | True  |
+| ------------- |:-------------:| -----:|
+| False         | 468           | 46    |
+| True          | 8             |    9  |
 
 ```{r}
 bank.ldasubset <- sample(1:150, 75)
 lda.fit=lda(y~balance+duration,data=df, subset= bank.ldasubset)
 lda.fit
 
-renderPlot({
-  ggplot(lda.fit, aes(x = ))
-})
+
 bank.ldatrain=subset(df,df$month=="jun")
 bank.ldapredict = predict(lda.fit, df[-bank.ldasubset, ])
 data.frame(bank.ldapredict)[1:5,]
@@ -83,9 +94,15 @@ table(lda.class$class,bank.ldatrain$y)
 mean(lda.class$class==bank.ldatrain$y)
 ```
 
-## Linear Discriminant Analysis
+## Logistic Regression Analysis
 
-Using Linear Discriminant Analysis on the same parameteres (duration and current balance) we were able to bost the accurracy to over 90%. This suggest there is a linear releation between whether or not they decide vs duration and balance.
+Using Logistic Regression Analysis on the same parameteres (duration and current balance) we were able to bost the accurracy to over 88.39406%. This suggest there is a logistic releation between whether or not they decide vs duration and balance. However its is weaker that then the linear relationship. 
+
+The false postive issue remains.
+| Prediction    | False         | True  |
+| ------------- |:-------------:| -----:|
+| False         |  3760         | 338   |
+| True          | 178           |  170  |
 
 ```{r}
 bank.glmsubset <- sample(1:150, 75)
@@ -102,7 +119,17 @@ mean(glm.pred == df$y_int[-bank.glmsubset])
 ```
 
 
-## quadratic discriminant analysis
+## Quadratic Discriminant Analysis
+
+Using Logistic Regression Analysis on the same parameteres (duration and current balance) we were able to bost the accurracy to over 89.64218%. This suggest there is a quadiratic releation between whether or not they decide vs duration and balance. Though stronger than logistic, the tread suggested is most likeuly linear because it was the strongestis split between linear and quadritic because the accuracy is marginally different.
+
+
+The false postive issue remains.
+
+| Prediction    | False         | True  |
+| ------------- |:-------------:| -----:|
+| False         |  459         | 38   |
+| True          | 17           |  17  |
 
 ```{r}
 bank.qdasubset=df$month != "jun"
@@ -117,3 +144,8 @@ qda.class = predict(qda.fit, bank.qdatrain)
 table(qda.class$class,bank.qdatrain$y)
 mean(qda.class$class==bank.qdatrain$y)
 ```
+
+Overall the Strongest Predictors were the Lilnear Discriminant Analysis however how does this do overall? Though the accuracy of the model is @ 89.83051%, the fact that 88.476% of people said no means that just guess no all the time would get a reasonably high score of 88.476%. That means even the strongest model is performing only marginally better.
+
+
+
